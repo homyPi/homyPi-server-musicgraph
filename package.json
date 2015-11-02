@@ -1,0 +1,16 @@
+{
+  "name": "homyPi-server-musicgraph",
+  "version": "0.1.0",
+  "author": "Youenn PENNARUN",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "lodash": "^3.10.1",
+    "mongoose": "^4.1.7",
+    "object-assign": "^4.0.1",
+    "q": "^1.4.1",
+    "qs": "^5.0.0",
+    "request": "^2.64.0",
+    "request-promise": "^0.4.3",
+    "winston": "^1.0.1"
+  }
+}
