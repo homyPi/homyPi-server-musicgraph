@@ -12,5 +12,8 @@
     "request": "^2.64.0",
     "request-promise": "^0.4.3",
     "winston": "^1.0.1"
+  },
+  "scripts": {
+    "build": "echo 'nothing to build';"
   }
 }
