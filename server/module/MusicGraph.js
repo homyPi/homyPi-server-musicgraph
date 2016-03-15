@@ -4,7 +4,7 @@ let request = require("request");
 let qs = require("qs");
 let winston = require("winston");
 // let Q = require("q");
-let models = require("../link").getShared().MongooseModels;
+// let models = require("../link").getShared().MongooseModels;
 let Promise = require("bluebird");
 let _ = require("lodash");
 
@@ -47,7 +47,7 @@ let MusicGraph = function (myArtists, options) {
             var artist;
             winston.info("MusicGraph: this.getInitialArtists: START");
             while (i === -1 || this.ignoreIds.indexOf(i) !== -1) {
-                i = Math.floor(Math.random() * this.myArtists.length - 1);
+                i = Math.floor(Math.random() * this.myArtists.length);
             }
             artist = this.myArtists[i];
             if (!artist.externals ||
@@ -70,7 +70,7 @@ let MusicGraph = function (myArtists, options) {
                             winston.info("MusicGraph: this.getInitialArtists: SUCCESS");
                             resolve(artist);
                         }
-                    });
+                    }).catch(reject);
             } else {
                 resolve(artist);
             }
@@ -94,7 +94,11 @@ let MusicGraph = function (myArtists, options) {
                 if (err) {
                     return reject(err);
                 }
-                return resolve(JSON.parse(body).data);
+                var {error, data} = MusicGraph.handleResponse(response, body);
+                if (error) {
+                    return reject(error);
+                }
+                return resolve(data);
             });
         });
     };
@@ -118,16 +122,34 @@ let MusicGraph = function (myArtists, options) {
                                 return {
                                     track: {
                                         title: data[i].title,
-                                        artist: data[i].artist_name
+                                        artist: data[i].artist_name,
+                                        externals: {
+                                            spotify: {
+                                                id: data[i].track_spotify_id
+                                            },
+                                            youtube: {
+                                                id: data[i].track_youtube_id
+                                            },
+                                            musicbrainz: {
+                                                id: data[i].track_musicbrainz_id
+                                            }
+                                        }
                                     }
                                 };
                             });
                             this.playlist = res;
                             winston.info("MusicGraph: this.generate: SUCCESS");
                             return resolve(res);
-                        }).catch(function (err) {
+                        }).catch(err => {
                             winston.error("MusicGraph: this.generate: ERRORED", err);
-                            reject(err);
+                            if (err.code === 3) {
+                                console.log("waiting 30s before retrying");
+                                return setTimeout(() => {
+                                    console.log("retrying");
+                                    return this.generate().then(resolve).catch(reject);
+                                }, 30000);
+                            }
+                            return reject(err);
                         });
                 }).catch(function (err) {
                     reject(err);
@@ -181,5 +203,15 @@ MusicGraph.responseHandler = function (response) {
     });
 };
 
+MusicGraph.handleResponse = function (response, body) {
+    if (response.statusCode === 200) {
+        return {data: JSON.parse(body).data};
+    }
+    return {error: JSON.parse(body)};
+};
+
+MusicGraph.RESPONSE_CODES = {
+    TOO_MANY_REQUESTS: 429
+};
 
 module.exports = MusicGraph;
