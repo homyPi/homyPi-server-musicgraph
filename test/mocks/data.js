@@ -1,5 +1,6 @@
 export const GORILLAZ_ID = "e2527ebf-a6b5-11e0-b446-00251188dd67";
 export const SUPERTRAMP_ID = "e351c212-a6b5-11e0-b446-00251188dd67";
+export const UNKNOWN_ID = "e351c212-a6b5-11e0-b446-002510000007";
 
 export const MY_ARTISTS = [
     {
